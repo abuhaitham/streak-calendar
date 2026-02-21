@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth-context";
 import { Link, useRouter } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
 import { useState, FormEvent, useEffect } from "react";
 
 /**
@@ -16,7 +15,6 @@ import { useState, FormEvent, useEffect } from "react";
 export default function LoginPage() {
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const t = useTranslations("auth");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
