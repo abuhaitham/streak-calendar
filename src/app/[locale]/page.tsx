@@ -6,7 +6,6 @@ import { CustomCalendarIcon } from "@/components/ui/custom-calendar-icon";
 import { CustomTodoIcon } from "@/components/ui/custom-todo-icon";
 import { XIcon } from "@/components/ui/x-icon";
 import { Link } from "@/i18n/routing";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { Activity, Timer } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -61,29 +60,18 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CTA Section - Shows different buttons based on authentication state */}
+      {/* CTA Section */}
       <div className="space-y-4">
         <p className="hidden text-xs text-muted-foreground md:block md:text-sm">{t("hero.motivation")}</p>
 
-        {/* Authenticated user view */}
-        <SignedIn>
-          <div className="flex justify-center">
-            <Button asChild size="lg">
-              <Link href="/calendar">{t("goToCalendar")}</Link>
-            </Button>
-          </div>
-        </SignedIn>
-        {/* Non-authenticated user view */}
-        <SignedOut>
-          <div className="flex justify-center gap-4">
-            <Button asChild size="lg">
-              <Link href="/pricing">{t("getStarted")}</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/about">{t("learnMore")}</Link>
-            </Button>
-          </div>
-        </SignedOut>
+        <div className="flex justify-center gap-4">
+          <Button asChild size="lg">
+            <Link href="/calendar">{t("goToCalendar")}</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/about">{t("learnMore")}</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Preview Section - Responsive images for desktop and mobile views */}

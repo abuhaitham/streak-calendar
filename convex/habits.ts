@@ -4,6 +4,8 @@ import { internal } from "./_generated/api";
 import { Doc, Id } from "./_generated/dataModel";
 import { internalMutation, mutation, query } from "./_generated/server";
 
+const DEFAULT_USER_ID = "default-user";
+
 /**
  * Habit management operations for tracking user habits within calendars.
  * This module provides CRUD operations for habits with position management and completion tracking.
@@ -28,10 +30,9 @@ export const list = query({
     calendarId: v.optional(v.id("calendars")),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
-    let q = ctx.db.query("habits").filter((q) => q.eq(q.field("userId"), identity.subject));
+    let q = ctx.db.query("habits").filter((q) => q.eq(q.field("userId"), userId));
 
     if (args.calendarId) {
       q = q.filter((q) => q.eq(q.field("calendarId"), args.calendarId));
@@ -59,12 +60,11 @@ export const create = mutation({
     timerDuration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     // Verify calendar belongs to user
     const calendar = await ctx.db.get(args.calendarId);
-    if (!calendar || calendar.userId !== identity.subject) {
+    if (!calendar || calendar.userId !== userId) {
       throw new Error("Calendar not found");
     }
 
@@ -78,7 +78,7 @@ export const create = mutation({
 
     return await ctx.db.insert("habits", {
       name: args.name,
-      userId: identity.subject,
+      userId: userId,
       calendarId: args.calendarId,
       timerDuration: args.timerDuration,
       position: maxPosition + 1,
@@ -102,12 +102,11 @@ export const markComplete = mutation({
     count: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     // Verify habit belongs to user
     const habit = await ctx.db.get(args.habitId);
-    if (!habit || habit.userId !== identity.subject) {
+    if (!habit || habit.userId !== userId) {
       throw new Error("Habit not found");
     }
 
@@ -144,7 +143,7 @@ export const markComplete = mutation({
 
       const newCompletions = Array.from({ length: targetCount - currentCount }, (_, index) => ({
         habitId: args.habitId,
-        userId: identity.subject,
+        userId: userId,
         completedAt: baseTimestamp + index * 1000, // Add 1 second between each completion if multiple
       }));
       await Promise.all(newCompletions.map((completion) => ctx.db.insert("completions", completion)));
@@ -182,8 +181,7 @@ export const getCompletions = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<CompletionsResponse> => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     // Use a high limit to get all completions in one query for now
     // TODO: Implement proper pagination in the UI later
@@ -192,7 +190,7 @@ export const getCompletions = query({
     const queryBuilder = ctx.db
       .query("completions")
       .withIndex("by_user_and_date", (q) =>
-        q.eq("userId", identity.subject).gte("completedAt", args.startDate).lte("completedAt", args.endDate)
+        q.eq("userId", userId).gte("completedAt", args.startDate).lte("completedAt", args.endDate)
       )
       .order("desc");
 
@@ -231,17 +229,16 @@ export const update = mutation({
     position: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const userId = DEFAULT_USER_ID;
 
     const habit = await ctx.db.get(args.id);
-    if (!habit || habit.userId !== identity.subject) {
+    if (!habit || habit.userId !== userId) {
       throw new Error("Not authorized");
     }
 
     // Verify calendar belongs to user
     const calendar = await ctx.db.get(args.calendarId);
-    if (!calendar || calendar.userId !== identity.subject) {
+    if (!calendar || calendar.userId !== userId) {
       throw new Error("Calendar not found");
     }
 
@@ -325,11 +322,10 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("habits") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const userId = DEFAULT_USER_ID;
 
     const habit = await ctx.db.get(args.id);
-    if (!habit || habit.userId !== identity.subject) {
+    if (!habit || habit.userId !== userId) {
       throw new Error("Not authorized");
     }
 
@@ -373,11 +369,10 @@ export const scheduleHabitIncrement = mutation({
   handler: async (ctx, args): Promise<Id<"_scheduled_functions">> => {
     console.log("Starting schedule mutation for habit:", args.habitId);
 
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     const habit = await ctx.db.get(args.habitId);
-    if (!habit || habit.userId !== identity.subject) {
+    if (!habit || habit.userId !== userId) {
       console.error("Habit not found or unauthorized:", args.habitId);
       throw new Error("Habit not found or unauthorized");
     }

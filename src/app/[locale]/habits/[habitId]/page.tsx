@@ -2,7 +2,8 @@
 
 import { HabitDetails } from "@/components/habit/habit-details";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useConvexAuth, useQuery } from "convex/react";
+import { useAuth } from "@/contexts/auth-context";
+import { useQuery } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -22,7 +23,7 @@ import { Id } from "@server/convex/_generated/dataModel";
  * - Renders HabitDetails component with edit/delete capabilities
  */
 export default function HabitPage() {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const params = useParams();
   const router = useRouter();
   const habitId = params.habitId as Id<"habits">;

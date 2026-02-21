@@ -13,8 +13,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as calendars from "../calendars.js";
 import type * as calendar_sync from "../calendar_sync.js";
+import type * as calendars from "../calendars.js";
 import type * as habits from "../habits.js";
 import type * as migrations from "../migrations.js";
 
@@ -27,8 +27,8 @@ import type * as migrations from "../migrations.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  calendars: typeof calendars;
   calendar_sync: typeof calendar_sync;
+  calendars: typeof calendars;
   habits: typeof habits;
   migrations: typeof migrations;
 }>;

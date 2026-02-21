@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignUpButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import NumberFlow from "@number-flow/react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
@@ -222,7 +221,7 @@ export default function PricingPage() {
                 </ul>
               </CardContent>
 
-              {/* Card footer with CTA buttons and authentication state handling */}
+              {/* Card footer with CTA buttons */}
               <CardFooter className="flex flex-col">
                 {tier.isComingSoon ? (
                   // Coming soon tier CTA
@@ -237,25 +236,16 @@ export default function PricingPage() {
                     )}
                   </>
                 ) : (
-                  // Active tier CTA with authentication state handling
+                  // Active tier CTA
                   <>
-                    <SignedOut>
-                      <SignUpButton mode="modal">
-                        <Button size="lg" className="w-full" type="button">
-                          {tTiers(`${tier.name}.cta`)}
-                        </Button>
-                      </SignUpButton>
-                      {tier.name === "free" && (
-                        <p className="mt-4 text-center text-sm text-muted-foreground">
-                          {tTiers(`${tier.name}.noCreditCard`)}
-                        </p>
-                      )}
-                    </SignedOut>
-                    <SignedIn>
-                      <Button size="lg" className="w-full" asChild>
-                        <Link href="/calendar">{t("goToCalendar")}</Link>
-                      </Button>
-                    </SignedIn>
+                    <Button size="lg" className="w-full" asChild>
+                      <Link href={tier.cta.href || "/calendar"}>{tTiers(`${tier.name}.cta`)}</Link>
+                    </Button>
+                    {tier.name === "free" && (
+                      <p className="mt-4 text-center text-sm text-muted-foreground">
+                        {tTiers(`${tier.name}.noCreditCard`)}
+                      </p>
+                    )}
                   </>
                 )}
               </CardFooter>

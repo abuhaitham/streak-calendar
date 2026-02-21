@@ -1,5 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useAuth } from "@/contexts/auth-context";
+import { useMutation, useQuery } from "convex/react";
 import { format } from "date-fns";
 import { useState } from "react";
 
@@ -11,7 +12,7 @@ import { api } from "@server/convex/_generated/api";
  */
 
 export function useImportExport() {
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   // Dialog visibility states
   const [showImportExportDialog, setShowImportExportDialog] = useState(false);

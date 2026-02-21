@@ -2,7 +2,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Link } from "@/i18n/routing";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { CheckCircle2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -216,22 +215,18 @@ export default function AboutPage() {
         </CardFooter>
       </Card>
 
-      {/* Call-to-action buttons - different options for signed-in vs signed-out users */}
-      <div className="flex justify-center">
-        <SignedIn>
-          <Button asChild size="lg">
-            <Link href="/calendar" locale={locale}>
-              {t("goToCalendar")}
-            </Link>
-          </Button>
-        </SignedIn>
-        <SignedOut>
-          <Button asChild size="lg">
-            <Link href="/pricing" locale={locale}>
-              {t("getStarted")}
-            </Link>
-          </Button>
-        </SignedOut>
+      {/* Call-to-action buttons */}
+      <div className="flex justify-center gap-4">
+        <Button asChild size="lg">
+          <Link href="/calendar" locale={locale}>
+            {t("goToCalendar")}
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/pricing" locale={locale}>
+            {t("getStarted")}
+          </Link>
+        </Button>
       </div>
     </div>
   );

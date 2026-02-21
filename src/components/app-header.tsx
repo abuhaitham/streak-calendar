@@ -1,8 +1,8 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Menu, X } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { Link, useRouter } from "@/i18n/routing";
+import { LogOut, Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -23,7 +23,15 @@ import { XIcon } from "./ui/x-icon";
 
 export function AppHeader() {
   const t = useTranslations("nav");
+  const { isAuthenticated, logout, isLoading } = useAuth();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="border-b border-border bg-background/60">
@@ -62,17 +70,25 @@ export function AppHeader() {
               <span className="sr-only">Toggle menu</span>
             </Button>
             <ThemeToggle />
-            <SignedOut>
-              <Button asChild size="sm" className="h-8 text-xs md:h-9 md:text-sm">
-                <Link href="/pricing">{t("getStarted")}</Link>
-              </Button>
-            </SignedOut>
-            {/* TODO: 2025-01-05 - what is this? */}
-            <div className="flex scale-100 md:mx-2 md:scale-110">
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </div>
+            {!isLoading && (
+              <>
+                {isAuthenticated ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs md:h-9 md:text-sm"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
+                    Logout
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" className="h-8 text-xs md:h-9 md:text-sm">
+                    <Link href="/login">Login</Link>
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         </div>
 

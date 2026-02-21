@@ -1,9 +1,9 @@
 "use client";
 
 import { IntlProvider } from "@/components/intl-provider";
-import { ClerkProvider, useAuth } from "@clerk/nextjs";
+import { AuthProvider } from "@/contexts/auth-context";
 import { ConvexReactClient } from "convex/react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexProvider } from "convex/react";
 import { AbstractIntlMessages } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import { PropsWithChildren } from "react";
@@ -11,13 +11,20 @@ import { PropsWithChildren } from "react";
 /**
  * Root providers component that wraps the application with necessary context providers:
  * - Internationalization (next-intl)
- * - Authentication (Clerk)
+ * - Authentication (Custom password-based auth)
  * - State Management (Convex)
  * - Theme Management (next-themes)
  */
 
 // Initialize Convex client for real-time state management
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error(
+    "NEXT_PUBLIC_CONVEX_URL is not set. " +
+    "Copy .env.example to .env.local and run `npx convex dev` to populate it."
+  );
+}
+const convex = new ConvexReactClient(convexUrl);
 
 interface ProvidersProps extends PropsWithChildren {
   locale: string; // Current language/locale code
@@ -27,25 +34,20 @@ interface ProvidersProps extends PropsWithChildren {
 /**
  * Providers component that establishes the context hierarchy:
  * 1. IntlProvider - Handles translations and localization
- * 2. ClerkProvider - Manages authentication state and user sessions
- * 3. ConvexProviderWithClerk - Integrates Convex state with Clerk auth
+ * 2. AuthProvider - Manages password-based authentication
+ * 3. ConvexProvider - Provides Convex state management
  * 4. ThemeProvider - Manages light/dark theme preferences
  */
 export function Providers({ children, locale, messages }: ProvidersProps) {
   return (
     <IntlProvider locale={locale} messages={messages}>
-      <ClerkProvider
-        publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY as string}
-        afterSignUpUrl="/calendar"
-        afterSignInUrl="/calendar"
-        afterSignOutUrl="/"
-      >
-        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+      <AuthProvider>
+        <ConvexProvider client={convex}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
           </ThemeProvider>
-        </ConvexProviderWithClerk>
-      </ClerkProvider>
+        </ConvexProvider>
+      </AuthProvider>
     </IntlProvider>
   );
 }

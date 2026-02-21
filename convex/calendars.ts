@@ -2,6 +2,8 @@ import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
 
+const DEFAULT_USER_ID = "default-user";
+
 /**
  * Calendar operations for managing user calendars and their associated habits/completions.
  * This module provides CRUD operations for calendars with proper position management and cascading deletions.
@@ -22,12 +24,11 @@ import { mutation, query } from "./_generated/server";
  */
 export const list = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     return await ctx.db
       .query("calendars")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .order("asc")
       .collect();
   },
@@ -48,18 +49,17 @@ export const create = mutation({
     colorTheme: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     // Position is 1-based and determined by number of existing calendars
     const existingCalendars = await ctx.db
       .query("calendars")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
 
     return await ctx.db.insert("calendars", {
       name: args.name,
-      userId: identity.subject,
+      userId: userId,
       colorTheme: args.colorTheme,
       position: existingCalendars.length + 1,
     });
@@ -82,11 +82,10 @@ export const remove = mutation({
     id: v.id("calendars"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     const calendar = await ctx.db.get(args.id);
-    if (!calendar || calendar.userId !== identity.subject) {
+    if (!calendar || calendar.userId !== userId) {
       throw new Error("Calendar not found");
     }
 
@@ -113,7 +112,7 @@ export const remove = mutation({
     // Step 3: Update positions of remaining calendars
     const allCalendars = await ctx.db
       .query("calendars")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
 
     const deletedPosition = calendar.position ?? allCalendars.length;
@@ -155,17 +154,16 @@ export const update = mutation({
     position: v.number(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    const userId = DEFAULT_USER_ID;
 
     const calendar = await ctx.db.get(args.id);
-    if (!calendar || calendar.userId !== identity.subject) {
+    if (!calendar || calendar.userId !== userId) {
       throw new Error("Not authorized");
     }
 
     const allCalendars = await ctx.db
       .query("calendars")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
 
     // Handle position updates if position changed

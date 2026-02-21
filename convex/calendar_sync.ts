@@ -4,6 +4,8 @@ import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 
+const DEFAULT_USER_ID = "default-user";
+
 /**
  * Exports all user's calendars with their habits and completions.
  * Structure:
@@ -21,17 +23,16 @@ import { mutation, query } from "./_generated/server";
 
 export const exportCalendarsAndHabits = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
+    const userId = DEFAULT_USER_ID;
 
     const calendars = await ctx.db
       .query("calendars")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
 
     const allHabits = await ctx.db
       .query("habits")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
 
     // Build the export structure without _id fields
@@ -58,14 +59,13 @@ export const exportCalendarsAndHabits = query({
 
 export const exportCompletions = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return { completionsByHabit: {} };
+    const userId = DEFAULT_USER_ID;
 
     try {
       // Get all habits first to map IDs to names
       const habits = await ctx.db
         .query("habits")
-        .filter((q) => q.eq(q.field("userId"), identity.subject))
+        .filter((q) => q.eq(q.field("userId"), userId))
         .collect();
 
       const habitIdToName = new Map(habits.map((h) => [h._id, h.name]));
@@ -73,7 +73,7 @@ export const exportCompletions = query({
       // Get all completions
       const completions = await ctx.db
         .query("completions")
-        .withIndex("by_user_and_date", (q) => q.eq("userId", identity.subject))
+        .withIndex("by_user_and_date", (q) => q.eq("userId", userId))
         .collect();
 
       // Group completions by habit name
@@ -132,8 +132,7 @@ export const importData = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const userId = DEFAULT_USER_ID;
 
     // Clean the input data to only use fields we need
     const cleanedCalendars = args.data.calendars.map((calendar) => ({
@@ -148,7 +147,7 @@ export const importData = mutation({
 
     const existingCalendars = await ctx.db
       .query("calendars")
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .collect();
 
     // Continue with the rest of the import using cleanedCalendars
@@ -189,7 +188,7 @@ export const importData = mutation({
           } else {
             habitId = await ctx.db.insert("habits", {
               name,
-              userId: identity.subject,
+              userId: userId,
               calendarId,
               timerDuration,
               position: position ?? existingHabits.length + 1,
@@ -216,7 +215,7 @@ export const importData = mutation({
                 newCompletions.map((completion: { completedAt: number }) =>
                   ctx.db.insert("completions", {
                     habitId,
-                    userId: identity.subject,
+                    userId: userId,
                     completedAt: completion.completedAt,
                   })
                 )
@@ -228,7 +227,7 @@ export const importData = mutation({
         // Create new calendar
         const newCalendarId = await ctx.db.insert("calendars", {
           name: calendarData.name,
-          userId: identity.subject,
+          userId: userId,
           colorTheme: calendarData.colorTheme,
           position: calendarData.position ?? existingCalendars.length + 1,
         });
@@ -242,7 +241,7 @@ export const importData = mutation({
 
           const habitId = await ctx.db.insert("habits", {
             name,
-            userId: identity.subject,
+            userId: userId,
             calendarId: newCalendarId,
             timerDuration,
             position: position ?? calendarData.habits.indexOf(habitData) + 1,
@@ -255,7 +254,7 @@ export const importData = mutation({
               batch.map((completion: { completedAt: number }) =>
                 ctx.db.insert("completions", {
                   habitId,
-                  userId: identity.subject,
+                  userId: userId,
                   completedAt: completion.completedAt,
                 })
               )

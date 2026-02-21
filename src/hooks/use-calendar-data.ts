@@ -1,4 +1,5 @@
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useAuth } from "@/contexts/auth-context";
+import { useMutation, useQuery } from "convex/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { api } from "@server/convex/_generated/api";
@@ -20,7 +21,7 @@ import { Doc, Id } from "@server/convex/_generated/dataModel";
  * Note: All database operations are authenticated and will fail if user is not logged in
  */
 export function useCalendarData(startDate: Date, endDate: Date) {
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated } = useAuth();
   const [allCompletions, setAllCompletions] = useState<Doc<"completions">[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
