@@ -27,6 +27,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "@vercel/analytics": "^1.4.1",
     "@vercel/speed-insights": "^1.1.0",
+    "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.7",
     "class-variance-authority": "^0.7.1",
@@ -49,6 +50,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
